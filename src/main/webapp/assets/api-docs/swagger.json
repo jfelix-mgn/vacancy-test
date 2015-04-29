@@ -1,0 +1,115 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Создает объектную модель полученного документа, и сохраняет его в базу, а также возвращает\n\nего пользователю.",
+    "version": "1.0",
+    "title": "API Тестового задания"
+  },
+  "paths": {
+    "/api/download": {
+      "get": {
+        "summary": "Загрузка XML докумена с сервера",
+        "description": "Получение  документа из БД, генерация XML, загрузка",
+        "produces": [
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "query",
+            "description": "Уникальный идентификатор документа",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Документ не найден"
+          }
+        }
+      }
+    },
+    "/api/upload": {
+      "post": {
+        "summary": "Загрузка XML документа на сервер",
+        "description": "Загрузка XML документа на сервер, сохранение документа в БД и возврат заголовка документа",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "XML файл",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Документ успешно загружен",
+            "schema": {
+              "$ref": "#/definitions/UploadResponse"
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "UploadResponse": {
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "document": {
+          "description": "Заголовок сохраненного в БД документа. Присутствует только если статус = \"OK\"",
+          "$ref": "#/definitions/DocumentHeader"
+        },
+        "error": {
+          "type": "string",
+          "description": "Тект ошибки. Присутствует только если статус = \"FAIL\""
+        },
+        "status": {
+          "type": "string",
+          "description": "Статус операции. \"ОК\" - если документ успешно прочитан, и сохранен в БД, \"FAIL\" - если возникла ошибка",
+          "enum": [
+            "OK",
+            "FAIL"
+          ]
+        }
+      },
+      "description": "Ответ сервера после загрузки XML документа"
+    },
+    "DocumentHeader": {
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Уникальный идентификатор документа, полученный при сохранении в БД"
+        },
+        "name": {
+          "type": "string",
+          "description": "Имя документа"
+        },
+        "time": {
+          "type": "string",
+          "description": "Время добавления документа в БД"
+        }
+      }
+    }
+  }
+}

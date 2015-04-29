@@ -1,0 +1,127 @@
+task wrapper(type: Wrapper) {
+    gradleVersion = "${GRADLE_VERSION}"
+}
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${SPRING_BOOT_VERSION}")
+        classpath 'com.bmuschko:gradle-cargo-plugin:2.1'
+    }
+}
+
+apply plugin: 'spring-boot'
+apply plugin: 'idea'
+apply plugin: 'war'
+
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
+
+configurations {
+    providedCompile
+    providedRuntime
+}
+
+sourceSets.main.compileClasspath += configurations.providedCompile
+sourceSets.test.compileClasspath += configurations.providedCompile
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/main/")
+    }
+}
+
+jar {
+    exclude('rebel.xml')
+}
+
+war {
+    exclude('rebel.xml')
+}
+
+
+dependencies {
+
+    providedCompile("org.projectlombok:lombok:$LOMBOK_VERSION")
+
+    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-legacy:1.0.0.RELEASE")
+    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.springframework.boot:spring-boot-starter-freemarker")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+
+    compile("com.h2database:h2:${H2_VERSION}")
+    compile("commons-fileupload:commons-fileupload:1.3.1")
+
+    testCompile("junit:junit")
+}
+
+
+task moveWar(type: Copy) {
+    from "${project.buildDir}/libs/"
+    include '**.war'
+    into "$project.projectDir"
+}
+
+task removeWar(type: Delete) {
+    delete fileTree(dir: "$project.projectDir", include: '**.war')
+}
+
+task createWar() {
+}
+
+clean.dependsOn removeWar
+moveWar.dependsOn build
+createWar.dependsOn moveWar
+
+
+apply plugin: 'com.bmuschko.cargo-base'
+
+
+def appServerDir;
+def appServerPort;
+
+
+task configureAppServer() {
+    println project.hasProperty('tomcat.local.dir')
+    if (!project.hasProperty('tomcat.local.dir'))
+        throw new InvalidUserDataException("Не указана директория Tomcat6")
+    appServerDir = project.property('tomcat.local.dir');
+    println "Используется локальная версия Tomcat $appServerDir"
+    if (!project.hasProperty('tomcat.local.port'))
+        appServerPort = 8080
+    else
+        try {
+            appServerPort = Integer.parseInt(project.property('tomcat.local.port'))
+        } catch (NumberFormatException e) {
+            appServerPort = 8080
+        }
+    println "Tomcat будет запущен на порту $appServerPort"
+}
+
+task deployTomcat6(type: com.bmuschko.gradle.cargo.tasks.local.CargoRunLocal) {
+    containerId = 'tomcat6x'
+    port = appServerPort
+    homeDir = file(appServerDir)
+}
+
+task deployTomcat7(type: com.bmuschko.gradle.cargo.tasks.local.CargoRunLocal) {
+    containerId = 'tomcat7x'
+    port = appServerPort
+    homeDir = file(appServerDir)
+}
+
+
+deployTomcat6.dependsOn configureAppServer
