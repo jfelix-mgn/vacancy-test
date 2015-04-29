@@ -87,41 +87,48 @@ moveWar.dependsOn build
 createWar.dependsOn moveWar
 
 
-apply plugin: 'com.bmuschko.cargo-base'
+def configureDeploy() {
+    if (!project.hasProperty('tomcat.dir'))
+        return false;
+    return true;
+}
 
+def useDeploy = configureDeploy();
 
-def appServerDir;
-def appServerPort;
+println useDeploy;
 
+if (useDeploy) {
+    apply plugin: 'com.bmuschko.cargo-base'
 
-task configureAppServer() {
-    println project.hasProperty('tomcat.local.dir')
-    if (!project.hasProperty('tomcat.local.dir'))
-        throw new InvalidUserDataException("Не указана директория Tomcat6")
-    appServerDir = project.property('tomcat.local.dir');
-    println "Используется локальная версия Tomcat $appServerDir"
-    if (!project.hasProperty('tomcat.local.port'))
-        appServerPort = 8080
-    else
-        try {
-            appServerPort = Integer.parseInt(project.property('tomcat.local.port'))
-        } catch (NumberFormatException e) {
+    def appServerDir
+    def appServerPort
+
+    task configureAppServer() {
+        appServerDir = project.property('tomcat.dir');
+        println "Используется локальная версия Tomcat $appServerDir"
+        if (!project.hasProperty('tomcat.port'))
             appServerPort = 8080
-        }
-    println "Tomcat будет запущен на порту $appServerPort"
+        else
+            try {
+                appServerPort = Integer.parseInt(project.property('tomcat.port'))
+            } catch (NumberFormatException e) {
+                appServerPort = 8080
+            }
+        println "Tomcat будет запущен на порту $appServerPort"
+    }
+
+    task deployTomcat6(type: com.bmuschko.gradle.cargo.tasks.local.CargoRunLocal) {
+        containerId = "tomcat6x"
+        port = appServerPort
+        homeDir = file(appServerDir)
+    }
+
+    task deployTomcat7(type: com.bmuschko.gradle.cargo.tasks.local.CargoRunLocal) {
+        containerId = "tomcat7x"
+        port = appServerPort
+        homeDir = file(appServerDir)
+    }
+    deployTomcat6.dependsOn configureAppServer
 }
 
-task deployTomcat6(type: com.bmuschko.gradle.cargo.tasks.local.CargoRunLocal) {
-    containerId = 'tomcat6x'
-    port = appServerPort
-    homeDir = file(appServerDir)
-}
 
-task deployTomcat7(type: com.bmuschko.gradle.cargo.tasks.local.CargoRunLocal) {
-    containerId = 'tomcat7x'
-    port = appServerPort
-    homeDir = file(appServerDir)
-}
-
-
-deployTomcat6.dependsOn configureAppServer
