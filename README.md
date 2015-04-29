@@ -39,15 +39,15 @@
 
     #Для операционных систем семейства Unix
     #Для запуска Tomcat6
-    ./gradlew deployTomcat6 -Ptomcat.local.dir=<Директория> [-Ptomcat.local.port=<Порт>]
+    ./gradlew deployTomcat6 -Ptomcat.dir=<Директория> [-Ptomcat.port=<Порт>]
     #Для запуска Tomcat7
-    ./gradlew deployTomcat7 -Ptomcat.local.dir=<Директория> [-Ptomcat.local.port=<Порт>]
+    ./gradlew deployTomcat7 -Ptomcat.dir=<Директория> [-Ptomcat.port=<Порт>]
 
     #Для операционных систем семейства Windows
     #Для запуска Tomcat6
-    gradlew.bat deployTomcat6 -Ptomcat.local.dir=<Директория> [-Ptomcat.local.port=<Порт>]
+    gradlew.bat deployTomcat6 -Ptomcat.dir=<Директория> [-Ptomcat.port=<Порт>]
     #Для запуска Tomcat7
-    gradlew.bat deployTomcat7 -Ptomcat.local.dir=<Директория> [-Ptomcat.local.port=<Порт>]
+    gradlew.bat deployTomcat7 -Ptomcat.dir=<Директория> [-Ptomcat.port=<Порт>]
 
-где -Ptomcat.local.dir - директория в которой расположен Tomcat6, а -Ptomcat.local.port - порт
+где -Ptomcat.dir - директория в которой расположен Tomcat6, а -Ptomcat.port - порт
 Web сервера Tomcat. Порт указывать не обязательно, по умолчанию будет использоваться порт 8080
